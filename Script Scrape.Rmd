@@ -1,0 +1,77 @@
+```{r}
+Howfarback <- 24000
+Together <- matrix(nrow =1, ncol = 15)
+colnames(Together) <- c("Points", "Price", "Designation", "Extra", "Winery", "Alcohol", "Size", "Category", "Date", "Title", "Review", "Name", "Country", "Region", "Subregion")
+Thisrow <- matrix(nrow =1, ncol = 15)
+colnames(Thisrow) <- c("Points", "Price", "Designation", "Extra", "Winery", "Alcohol", "Size", "Category", "Date", "Title", "Review", "Name", "Country", "Region", "Subregion")
+start.time <- Sys.time()
+Whichpage <- 1
+Page <- 1
+```
+```{r}
+for (i in 1:Howfarback){
+  Page <- Page + 1
+  if ((floor((i-1)/30) == (i-1)/30) && (i != 1)){
+    Whichpage <- Whichpage + 10
+      Page <- 2
+  }
+Deel1 <- "https://www.winemag.com/ratings/?s=&drink_type=wine&page="
+Deel2 <- "&sort_by=pub_date_web&sort_dir=desc"
+url1 <- paste(Deel1, Whichpage, Deel2, sep = "")
+
+Yozes <- read_html(url1)
+H1 <- "body > div.off-canvas-wrap > div > section > section > div.landing-page-reviews > section > div.row > div.large-9.column > div > div.results > ul > li:nth-child("
+Yozes2 <- html_nodes(Yozes, paste(H1, Page, ") > a", sep= ""))
+url <- html_attr(Yozes2, "href")
+
+#Ding2 <- html_text(Ding1)
+#Ding3 <- tolower(Ding2)
+#Ding4 <- word(Ding3, 1:50)[which(!is.na(word(Ding3, 1:50)))]
+#Ding4 <- gsub("[()]", "", Ding4)
+#Ding5 <- paste(Ding4, sep="-", collapse=T)
+
+webpage <- read_html(url)
+
+Shizzle1 <- html_text(html_nodes(webpage,  '.medium-9 span , .medium-9 a , .primary-info .row:nth-child(2) .medium-9'))
+
+Points <- html_text(html_nodes(webpage,  '#points'))[1]
+Price <- html_text(html_nodes(webpage,  '.row:nth-child(1) .medium-9 span span'))
+Designation <-html_text(html_nodes(webpage,  '.primary-info .row:nth-child(2) .medium-9 span span'))
+if (length(Designation)==0){
+  Designation <- "None"
+}
+
+Winery <- html_text(html_nodes(webpage,  '.row+ .row .medium-9 span span a'))
+Alcohol <-  html_text(html_nodes(webpage,  '#review .row:nth-child(1) .small-9 span span'))
+Category <- html_text(html_nodes(webpage,  '.secondary-info .row:nth-child(3) .small-9 span span'))
+
+Info <- html_text(html_nodes(webpage,  '.small-9 > span span'))
+Date <- Info[which(str_sub(Info, nchar(Info)-4, nchar(Info)-4)=="/")]
+Size <- Info[which(grepl("ml", Info, ignore.case=T))]
+if (length(Size)==0){
+  Size <- ">1L"
+}
+
+Extra <- html_text(html_nodes(webpage, '#badges .badge'))
+if (length(Extra)==0){
+  Extra <- "None"
+}
+
+Title <- html_text(html_nodes(webpage, '.article-title'))
+Review <- html_text(html_nodes(webpage, '.description'))
+Name <- html_text(html_nodes(webpage, '#review .name'))
+if (length(Name)==0){
+  Name <- "Unknown"
+}
+
+Shizzle5 <- html_text(html_nodes(webpage, '.row:nth-child(4) a'))
+
+Country <- Shizzle1[length(Shizzle1)-3]
+Region <- Shizzle1[length(Shizzle1)-4]
+Subregion <- Shizzle1[length(Shizzle1)-5]
+
+Thisrow <- cbind(Points, Price, Designation, Extra, Winery, Alcohol, Size, Category, Date, Title, Review, Name, Country, Region, Subregion)
+
+Together <- rbind(Together, Thisrow)
+print(i)
+}
